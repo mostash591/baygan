@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="description" content="بایگانی اطلاعات — بانک اطلاعاتی طبقه‌بندی‌شده با رمزگذاری AES-256">
+<meta name="theme-color" content="#3D2980">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="بایگانی">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#0f1117;
+  --bg2:#151117;
+  --card:#1a1d26;
+  --card2:#20242e;
+  --line:#2a2f3d;
+  --txt:#e8eaf0;
+  --txt2:#9aa3b5;
+  --acc:#3D2980;
+  --acc2:#5a4bd0;
+  --ok:#22c55e;
+  --warn:#f59e0b;
+  --err:#ef4444;
+  --r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'Vazirmatn',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--txt);
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit;color:inherit}
+.hidden{display:none!important}
+
+/* ===== صفحه قفل ===== */
+#lockScreen{
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+  background:radial-gradient(1200px 600px at 50% -10%, #1e1b3a 0%, var(--bg) 60%);
+}
+.lockBox{
+  width:100%;max-width:420px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  padding:32px 28px;
+  text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.4);
+}
+.lockLogo{
+  width:72px;height:72px;margin:0 auto 16px;
+  border-radius:20px;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:34px;font-weight:800;
+}
+.lockTitle{font-size:22px;font-weight:800;margin-bottom:6px}
+.lockSub{font-size:13px;color:var(--txt2);margin-bottom:24px;line-height:1.7}
+.lockInput{
+  width:100%;
+  background:var(--card2);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:14px 16px;
+  font-size:16px;
+  text-align:center;
+  letter-spacing:2px;
+  margin-bottom:14px;
+  outline:none;
+  transition:border-color .2s;
+}
+.lockInput:focus{border-color:var(--acc2)}
+.lockBtn{
+  width:100%;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  border-radius:10px;
+  padding:14px;
+  font-size:16px;font-weight:700;
+  transition:transform .1s,opacity .2s;
+}
+.lockBtn:active{transform:scale(.98)}
+.lockBtn:disabled{opacity:.5}
+.lockErr{
+  margin-top:14px;
+  font-size:13px;color:var(--err);
+  min-height:20px;
+}
+.lockHint{
+  margin-top:16px;
+  font-size:12px;color:var(--txt2);
+  line-height:1.7;
+}
+
+/* ===== برنامه اصلی ===== */
+#appScreen{min-height:100vh;display:flex;flex-direction:column}
+.appBar{
+  position:sticky;top:0;z-index:10;
+  background:rgba(15,17,23,.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+  padding:12px 16px;
+  display:flex;align-items:center;gap:12px;
+}
+.appBarLogo{
+  width:36px;height:36px;
+  border-radius:10px;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:800;
+  flex-shrink:0;
+}
+.appBarTitle{font-size:16px;font-weight:700;flex:1}
+.appBarBtn{
+  background:var(--card2);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:8px 12px;
+  font-size:13px;
+  transition:background .2s;
+}
+.appBarBtn:active{background:var(--line)}
+
+.appBody{flex:1;padding:16px;max-width:900px;margin:0 auto;width:100%}
+
+/* ===== کارت‌ها ===== */
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  padding:20px;
+  margin-bottom:16px;
+}
+.cardTitle{font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.cardSub{font-size:13px;color:var(--txt2);margin-bottom:14px;line-height:1.7}
+
+/* ===== فرم ===== */
+.field{margin-bottom:14px}
+.fieldLabel{display:block;font-size:13px;color:var(--txt2);margin-bottom:6px}
+.fieldInput{
+  width:100%;
+  background:var(--card2);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:12px 14px;
+  font-size:15px;
+  outline:none;
+  transition:border-color .2s;
+}
+.fieldInput:focus{border-color:var(--acc2)}
+textarea.fieldInput{min-height:90px;resize:vertical}
+select.fieldInput{appearance:none}
+
+.btnRow{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  border-radius:10px;
+  padding:12px 20px;
+  font-size:14px;font-weight:700;
+  transition:transform .1s,opacity .2s;
+}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.5}
+.btnGhost{
+  background:var(--card2);
+  border:1px solid var(--line);
+}
+.btnOk{background:linear-gradient(135deg,#158038,var(--ok))}
+.btnErr{background:linear-gradient(135deg,#b91c1c,var(--err))}
+
+/* ===== لیست ===== */
+.listItem{
+  background:var(--card2);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:14px;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:12px;
+}
+.listItemBody{flex:1;min-width:0}
+.listItemTitle{font-size:15px;font-weight:600;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.listItemSub{font-size:12px;color:var(--txt2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.listItemBtn{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:8px 10px;
+  font-size:12px;
+  flex-shrink:0;
+}
+
+/* ===== جستجو ===== */
+.searchBox{
+  width:100%;
+  background:var(--card2);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:12px 16px;
+  font-size:15px;
+  outline:none;
+  margin-bottom:14px;
+  transition:border-color .2s;
+}
+.searchBox:focus{border-color:var(--acc2)}
+
+/* ===== پیام ===== */
+#toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:12px 20px;
+  font-size:14px;
+  z-index:100;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+  opacity:0;pointer-events:none;
+  transition:opacity .3s;
+  max-width:90vw;
+}
+#toast.show{opacity:1}
+#toast.ok{border-color:var(--ok)}
+#toast.err{border-color:var(--err)}
+
+/* ===== مودال ===== */
+#modal{
+  position:fixed;inset:0;z-index:50;
+  background:rgba(0,0,0,.6);
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+}
+.modalBox{
+  width:100%;max-width:480px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  padding:24px;
+  max-height:85vh;overflow-y:auto;
+}
+.modalTitle{font-size:18px;font-weight:800;margin-bottom:14px}
+
+/* ===== ریسپانسیو ===== */
+@media (max-width:480px){
+  .appBody{padding:12px}
+  .card{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== صفحه قفل / راه‌اندازی ===== -->
+<div id="lockScreen">
+  <div class="lockBox">
+    <div class="lockLogo">ب</div>
+    <div class="lockTitle" id="lockTitle">بایگانی اطلاعات</div>
+    <div class="lockSub" id="lockSub">برای شروع، یک رمز اصلی بسازید.<br>این رمز فقط در ذهن شماست و قابل بازیابی نیست.</div>
+    <input type="password" class="lockInput" id="lockPass" placeholder="رمز اصلی" autocomplete="new-password">
+    <input type="password" class="lockInput hidden" id="lockPass2" placeholder="تکرار رمز اصلی" autocomplete="new-password">
+    <button class="lockBtn" id="lockBtn">شروع</button>
+    <div class="lockErr" id="lockErr"></div>
+    <div class="lockHint" id="lockHint">رمز اصلی را در جای امنی نگه دارید.<br>اگه فراموش کنید، اطلاعات قابل بازیابی نیست.</div>
+  </div>
+</div>
+
+<!-- ===== برنامه اصلی ===== -->
+<div id="appScreen" class="hidden">
+  <div class="appBar">
+    <div class="appBarLogo">ب</div>
+    <div class="appBarTitle">بایگانی اطلاعات</div>
+    <button class="appBarBtn" id="btnBackup">پشتیبان</button>
+    <button class="appBarBtn" id="btnRestore">بازیابی</button>
+    <button class="appBarBtn" id="btnLock">قفل</button>
+  </div>
+  <div class="appBody">
+
+    <!-- ===== افزودن ===== -->
+    <div class="card">
+      <div class="cardTitle">➕ افزودن مورد جدید</div>
+      <div class="cardSub">اطلاعات را وارد کنید. همه‌چیز با رمز اصلی شما رمزگذاری می‌شود.</div>
+      <div class="field">
+        <label class="fieldLabel">عنوان</label>
+        <input type="text" class="fieldInput" id="fTitle" placeholder="مثلاً: قرارداد خانه">
+      </div>
+      <div class="field">
+        <label class="fieldLabel">دسته‌بندی</label>
+        <select class="fieldInput" id="fCat">
+          <option value="عمومی">عمومی</option>
+          <option value="مالی">مالی</option>
+          <option value="شخصی">شخصی</option>
+          <option value="کاری">کاری</option>
+          <option value="سلامت">سلامت</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="fieldLabel">متن / توضیحات</label>
+        <textarea class="fieldInput" id="fBody" placeholder="متن مورد نظر..."></textarea>
+      </div>
+      <div class="field">
+        <label class="fieldLabel">یا وارد کردن از فایل</label>
+        <input type="file" class="fieldInput" id="fFile" accept=".txt,.docx,.xlsx,.md">
+      </div>
+      <div class="btnRow">
+        <button class="btn" id="btnAdd">ذخیره</button>
+        <button class="btn btnGhost" id="btnClear">پاک کردن فرم</button>
+      </div>
+    </div>
+
+    <!-- ===== لیست ===== -->
+    <div class="card">
+      <div class="cardTitle">📚 آرشیو شما</div>
+      <input type="text" class="searchBox" id="searchBox" placeholder="🔍 جستجو در آرشیو...">
+      <div id="listBox"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== پیام ===== -->
+<div id="toast"></div>
+
+<!-- ===== مودال ===== -->
+<div id="modal" class="hidden">
+  <div class="modalBox">
+    <div class="modalTitle" id="modalTitle"></div>
+    <div id="modalBody"></div>
+    <div class="btnRow" style="margin-top:16px">
+      <button class="btn btnGhost" id="modalClose">بستن</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ورودی فایل بازیابی ===== -->
+<input type="file" id="restoreFile" class="hidden" accept=".json">
+
+<script>
+/* =====================================================
+   بایگانی اطلاعات — نسخه اندروید (PWA)
+   ذخیره‌سازی: localStorage مرورگر گوشی
+   رمزگذاری: AES-256-GCM با Web Crypto API
+===================================================== */
+
+const LS_KEY = 'baygan-vault';
+let masterKey = null;
+let vault = { items: [] };
+
+/* ===== ابزارهای رمزگذاری ===== */
+async function deriveKey(password, salt){
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name:'PBKDF2', salt, iterations:200000, hash:'SHA-256' },
+    keyMaterial,
+    { name:'AES-GCM', length:256 },
+    false,
+    ['encrypt','decrypt']
+  );
+}
+async function encryptData(key, data){
+  const enc = new TextEncoder();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, enc.encode(data));
+  return { iv: Array.from(iv), ct: Array.from(new Uint8Array(ct)) };
+}
+async function decryptData(key, obj){
+  const dec = new TextDecoder();
+  const pt = await crypto.subtle.decrypt(
+    { name:'AES-GCM', iv: new Uint8Array(obj.iv) },
+    key,
+    new Uint8Array(obj.ct)
+  );
+  return dec.decode(pt);
+}
+
+/* ===== ارتباط با حافظه گوشی (localStorage) ===== */
+async function loadVaultFromServer(){
+  try{
+    const s = localStorage.getItem(LS_KEY);
+    return s ? JSON.parse(s) : null;
+  }catch(e){ return null; }
+}
+async function saveVaultToServer(payload){
+  localStorage.setItem(LS_KEY, JSON.stringify(payload));
+}
+async function deleteVaultOnServer(){
+  localStorage.removeItem(LS_KEY);
+}
+
+/* ===== رابط کاربری ===== */
+const $ = id => document.getElementById(id);
+function toast(msg, type){
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'show' + (type ? ' ' + type : '');
+  clearTimeout(t._h);
+  t._h = setTimeout(()=>{ t.className=''; }, 2600);
+}
+function showModal(title, bodyHtml){
+  $('modalTitle').textContent = title;
+  $('modalBody').innerHTML = bodyHtml;
+  $('modal').classList.remove('hidden');
+}
+$('modalClose').onclick = ()=> $('modal').classList.add('hidden');
+
+/* ===== صفحه قفل ===== */
+let isSetup = false;
+async function initLock(){
+  const stored = await loadVaultFromServer();
+  isSetup = !stored;
+  if(isSetup){
+    $('lockTitle').textContent = 'بایگانی اطلاعات';
+    $('lockSub').innerHTML = 'برای شروع، یک رمز اصلی بسازید.<br>این رمز فقط در ذهن شماست و قابل بازیابی نیست.';
+    $('lockPass2').classList.remove('hidden');
+    $('lockBtn').textContent = 'شروع';
+  }else{
+    $('lockTitle').textContent = 'بایگانی اطلاعات';
+    $('lockSub').innerHTML = 'رمز اصلی خود را وارد کنید.';
+    $('lockPass2').classList.add('hidden');
+    $('lockBtn').textContent = 'باز کردن';
+  }
+}
+$('lockBtn').onclick = async ()=>{
+  const p1 = $('lockPass').value;
+  const p2 = $('lockPass2').value;
+  $('lockErr').textContent = '';
+  if(!p1){ $('lockErr').textContent = 'رمز را وارد کنید.'; return; }
+  if(isSetup){
+    if(p1.length < 6){ $('lockErr').textContent = 'رمز باید حداقل ۶ حرف باشد.'; return; }
+    if(p1 !== p2){ $('lockErr').textContent = 'تکرار رمز مطابقت ندارد.'; return; }
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    masterKey = await deriveKey(p1, salt);
+    vault = { items: [] };
+    const enc = await encryptData(masterKey, JSON.stringify(vault));
+    await saveVaultToServer({ salt: Array.from(salt), data: enc });
+    enterApp();
+  }else{
+    const stored = await loadVaultFromServer();
+    const salt = new Uint8Array(stored.salt);
+    masterKey = await deriveKey(p1, salt);
+    try{
+      const plain = await decryptData(masterKey, stored.data);
+      vault = JSON.parse(plain);
+      enterApp();
+    }catch(e){
+      $('lockErr').textContent = 'رمز اشتباه است.';
+    }
+  }
+};
+
+/* ===== ورود به برنامه ===== */
+function enterApp(){
+  $('lockScreen').classList.add('hidden');
+  $('appScreen').classList.remove('hidden');
+  renderList();
+}
+$('btnLock').onclick = ()=>{
+  masterKey = null;
+  vault = { items: [] };
+  $('appScreen').classList.add('hidden');
+  $('lockScreen').classList.remove('hidden');
+  $('lockPass').value = '';
+  $('lockPass2').value = '';
+  initLock();
+};
+
+/* ===== افزودن ===== */
+$('btnAdd').onclick = async ()=>{
+  const title = $('fTitle').value.trim();
+  const cat = $('fCat').value;
+  let body = $('fBody').value;
+  if(!title){ toast('عنوان را وارد کنید.', 'err'); return; }
+  vault.items.push({ id: Date.now(), title, cat, body, ts: new Date().toISOString() });
+  await persist();
+  clearForm();
+  renderList();
+  toast('ذخیره شد.', 'ok');
+};
+$('btnClear').onclick = clearForm;
+function clearForm(){
+  $('fTitle').value = '';
+  $('fBody').value = '';
+  $('fFile').value = '';
+}
+$('fFile').onchange = async e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  try{
+    if(ext === 'docx'){
+      const buf = await file.arrayBuffer();
+      const res = await mammoth.extractRawText({ arrayBuffer: buf });
+      $('fBody').value = res.value;
+    }else if(ext === 'xlsx'){
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type:'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      $('fBody').value = XLSX.utils.sheet_to_csv(ws);
+    }else{
+      $('fBody').value = await file.text();
+    }
+    if(!$('fTitle').value) $('fTitle').value = file.name.replace(/\.[^.]+$/,'');
+    toast('فایل خوانده شد.', 'ok');
+  }catch(err){
+    toast('خواندن فایل ناموفق بود.', 'err');
+  }
+};
+
+/* ===== لیست ===== */
+function renderList(){
+  const q = $('searchBox').value.trim().toLowerCase();
+  const box = $('listBox');
+  box.innerHTML = '';
+  const items = vault.items.filter(it =>
+    !q || it.title.toLowerCase().includes(q) || (it.body||'').toLowerCase().includes(q) || (it.cat||'').toLowerCase().includes(q)
+  );
+  if(!items.length){
+    box.innerHTML = '<div class="cardSub">موردی یافت نشد.</div>';
+    return;
+  }
+  items.forEach(it=>{
+    const div = document.createElement('div');
+    div.className = 'listItem';
+    div.innerHTML = `
+      <div class="listItemBody">
+        <div class="listItemTitle">${escapeHtml(it.title)}</div>
+        <div class="listItemSub">${escapeHtml(it.cat)} • ${escapeHtml((it.body||'').slice(0,60))}</div>
+      </div>
+      <button class="listItemBtn" data-act="view" data-id="${it.id}">مشاهده</button>
+      <button class="listItemBtn" data-act="del" data-id="${it.id}">حذف</button>
+    `;
+    box.appendChild(div);
+  });
+}
+$('searchBox').oninput = renderList;
+$('listBox').onclick = async e=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  const id = Number(btn.dataset.id);
+  const it = vault.items.find(x=>x.id===id);
+  if(!it) return;
+  if(btn.dataset.act === 'view'){
+    showModal(it.title, `
+      <div class="cardSub">${escapeHtml(it.cat)}</div>
+      <div style="white-space:pre-wrap;line-height:1.8">${escapeHtml(it.body||'')}</div>
+    `);
+  }else if(btn.dataset.act === 'del'){
+    if(confirm('حذف شود؟')){
+      vault.items = vault.items.filter(x=>x.id!==id);
+      await persist();
+      renderList();
+      toast('حذف شد.', 'ok');
+    }
+  }
+};
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ===== ذخیره ===== */
+async function persist(){
+  const enc = await encryptData(masterKey, JSON.stringify(vault));
+  const stored = await loadVaultFromServer();
+  await saveVaultToServer({ salt: stored.salt, data: enc });
+}
+
+/* ===== پشتیبان ===== */
+$('btnBackup').onclick = async ()=>{
+  const stored = await loadVaultFromServer();
+  const blob = new Blob([JSON.stringify(stored)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'baygan-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('فایل پشتیبان دانلود شد.', 'ok');
+};
+
+/* ===== بازیابی ===== */
+$('btnRestore').onclick = ()=> $('restoreFile').click();
+$('restoreFile').onchange = async e=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    const stored = JSON.parse(await file.text());
+    if(!stored.salt || !stored.data) throw new Error();
+    const salt = new Uint8Array(stored.salt);
+    const p = prompt('رمز اصلی فایل پشتیبان را وارد کنید:');
+    if(!p) return;
+    const key = await deriveKey(p, salt);
+    const plain = await decryptData(key, stored.data);
+    vault = JSON.parse(plain);
+    masterKey = key;
+    await saveVaultToServer(stored);
+    renderList();
+    toast('بازیابی شد.', 'ok');
+  }catch(err){
+    toast('بازیابی ناموفق بود (رمز اشتباه؟).', 'err');
+  }
+  e.target.value = '';
+};
+
+/* ===== شروع ===== */
+initLock();
+
+/* ===== ثبت Service Worker (برای آفلاین) ===== */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
