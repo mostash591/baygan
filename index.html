@@ -92,6 +92,7 @@ mark{background:var(--markbg);color:var(--markink);border-radius:4px;padding:0 2
 .btn.big{padding:12px 20px;font-size:15px}
 .btn.small{padding:5px 12px;font-size:12.5px;border-radius:9px}
 .btn.active{background:var(--hover);color:#fff;border-color:var(--hover)}
+.btn.recording{opacity:.55}
 .iconbtn{width:34px;height:34px;border-radius:9px;border:none;background:transparent;color:inherit;display:grid;place-items:center;cursor:pointer;transition:.15s}
 .iconbtn:hover{background:rgba(127,101,208,.16)}
 .iconbtn.warn:hover{background:rgba(239,68,68,.14);color:var(--err)}
@@ -133,6 +134,18 @@ input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
 .urllink svg{width:14px;height:14px;color:var(--brandglow)}
 .urllink:hover{text-decoration:underline;color:var(--glow)}
 .mini svg{width:12px;height:12px;display:inline-block;vertical-align:-2px}
+.audiowrap{display:flex;flex-direction:column;gap:6px;max-width:340px}
+.audiowrap audio{width:100%;height:42px}
+.fprev audio{width:100%;max-width:320px;height:42px;margin-top:8px;display:block}
+.rtable audio{width:170px;height:36px}
+.recstat{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:12.5px;color:var(--err);font-weight:700;flex-wrap:wrap}
+.recdot{width:9px;height:9px;border-radius:50%;background:var(--err);display:inline-block;animation:pulse 1.2s infinite}
+/* ===== مبلغ ===== */
+.moneybox{position:relative}
+.moneybox .inp{padding-inline-end:76px}
+.moneybox .moneyunit{position:absolute;inset-inline-end:8px;top:50%;transform:translateY(-50%);font-size:11.5px;font-weight:800;color:var(--brandglow);background:var(--elevated);border:1px solid var(--line);padding:2px 9px;border-radius:8px;pointer-events:none;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.moneyval{font-weight:800;font-size:14px}
+.moneyval b{color:var(--brandglow);font-size:11px;background:var(--elevated);border:1px solid var(--line);padding:1px 9px;border-radius:99px;margin-inline-start:5px;font-weight:800}
 .auth{min-height:100vh;display:grid;grid-template-columns:1.1fr minmax(380px,520px);position:relative}
 .theme-btn{position:absolute;top:18px;inset-inline-end:18px;width:42px;height:42px;border-radius:12px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.09);color:#F1EEFD;display:grid;place-items:center;cursor:pointer;z-index:6;transition:.2s}
 .theme-btn:hover{background:rgba(255,255,255,.18);transform:translateY(-1px)}
@@ -248,7 +261,7 @@ input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
 .rval{flex:1;min-width:0;overflow-wrap:anywhere}
 .rthumb{max-width:100%;max-height:170px;border-radius:9px;cursor:zoom-in;border:1px solid var(--line);transition:.2s}
 .rthumb:hover{transform:scale(1.015);box-shadow:var(--shadow)}
-.imgbtns{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+.imgbtns{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap;align-items:center}
 .pdfchip{display:inline-flex;align-items:center;gap:7px;background:var(--softbg);border:1px solid var(--line);border-radius:9px;padding:4px 10px;font-size:12px;max-width:100%;flex-wrap:wrap}
 .pdfchip svg{width:15px;height:15px;color:var(--ink2)}
 .pdfchip.fc-pdf svg{color:#E4574C}
@@ -290,7 +303,7 @@ input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
 .mactions{display:flex;gap:10px;justify-content:flex-start;margin-top:18px;flex-wrap:wrap}
 .mactions.spread{justify-content:space-between;align-items:center}
 .cmsg{font-size:14px;line-height:2}
-.frow{display:grid;grid-template-columns:150px 1fr 34px;gap:8px;margin-bottom:8px;align-items:center;animation:fadeUp .25s}
+.frow{display:grid;grid-template-columns:140px 1fr 140px 34px;gap:8px;margin-bottom:8px;align-items:center;animation:fadeUp .25s}
 .ff{margin-bottom:15px}
 .filebox{border:1.5px dashed var(--line);border-radius:12px;padding:12px;background:var(--softbg)}
 .filebtns{display:flex;gap:8px;flex-wrap:wrap}
@@ -388,10 +401,12 @@ input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
   .rgrid{grid-template-columns:1fr}
 }
 @media(max-width:600px){
-  .frow{grid-template-columns:1fr 40px;grid-template-areas:"type type" "name del"}
+  .frow{grid-template-columns:1fr 40px;grid-template-areas:"type type" "name del" "unit unit"}
   .frow .ftype{grid-area:type}
   .frow .fname{grid-area:name}
   .frow .iconbtn{grid-area:del}
+  .frow .funit,.frow .funitcustom{grid-area:unit}
+  .funit-empty{display:none}
 }
 </style>
 </head>
@@ -406,7 +421,7 @@ input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
         <div><div class="nm">بایگانی اطلاعات</div><div class="sub">بانک اطلاعاتی طبقه‌بندی‌شده</div></div>
       </div>
       <h1>اطلاعات شما،<br>منظم مثل یک <span>بایگانی</span></h1>
-      <p class="auth-lead">شاخه‌های درختی بسازید، برای هر شاخه فیلد تعریف کنید و اطلاعات متنی، رمزهای عبور، آدرس سایت‌ها و فایل‌های خود را امن نگهداری کنید.</p>
+      <p class="auth-lead">شاخه‌های درختی بسازید، برای هر شاخه فیلد تعریف کنید و مبالغ، متن‌ها، رمزها، صدا و فایل‌های خود را امن نگهداری کنید.</p>
       <ul class="featlist" id="featList"></ul>
     </div>
     <div class="auth-legal" id="authLegal"></div>
@@ -492,11 +507,12 @@ function b64ToBuf(b64){const s=atob(b64);const u8=new Uint8Array(s.length);for(l
 function dataURLtoU8(dataURL){const i=dataURL.indexOf(',');const b64=dataURL.slice(i+1);const bin=atob(b64);const u8=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)u8[k]=bin.charCodeAt(k);return u8;}
 function b64ToBlob(dataURL,mime){const u8=dataURLtoU8(dataURL);return new Blob([u8],{type:mime||'application/octet-stream'});}
 function readFileAsDataURL(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsDataURL(f);});}
-function guessMime(file){if(file.type)return file.type;const n=(file.name||'').toLowerCase();if(n.endsWith('.docx'))return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';if(n.endsWith('.doc'))return 'application/msword';if(n.endsWith('.xlsx'))return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';if(n.endsWith('.xls'))return 'application/vnd.ms-excel';if(n.endsWith('.pdf'))return 'application/pdf';return 'application/octet-stream';}
+function guessMime(file){if(file.type)return file.type;const n=(file.name||'').toLowerCase();if(n.endsWith('.docx'))return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';if(n.endsWith('.doc'))return 'application/msword';if(n.endsWith('.xlsx'))return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';if(n.endsWith('.xls'))return 'application/vnd.ms-excel';if(n.endsWith('.pdf'))return 'application/pdf';if(n.endsWith('.mp3'))return 'audio/mpeg';if(n.endsWith('.wav'))return 'audio/wav';if(n.endsWith('.m4a'))return 'audio/mp4';if(n.endsWith('.ogg'))return 'audio/ogg';if(n.endsWith('.webm'))return 'audio/webm';return 'application/octet-stream';}
 function fmtSize(b){if(b<1024)return faNum(b)+' بایت';if(b<1048576)return faNum(Math.round(b/1024))+' کیلوبایت';return faNum((b/1048576).toLocaleString(undefined,{maximumFractionDigits:1}))+' مگابایت';}
 function faDate(iso){try{return new Date(iso+'T12:00:00').toLocaleDateString('fa-IR');}catch(e){return iso;}}
 function fmtDT(ts){try{return new Date(ts).toLocaleDateString('fa-IR',{year:'numeric',month:'long',day:'numeric'});}catch(e){return '';}}
 function hrefOf(v){const s=String(v).trim();return /^https?:\/\//i.test(s)?s:'https://'+s;}
+function fmtMoney(v){const n=Number(v);if(!isFinite(n))return esc(String(v));return n.toLocaleString('fa-IR',{maximumFractionDigits:2});}
 function toast(msg,type){const w=$('#toastWrap');const d=document.createElement('div');d.className='toast '+(type||'');d.innerHTML=(type==='err'||type==='warn'?I.alert:I.check)+'<span>'+msg+'</span>';w.appendChild(d);setTimeout(()=>{d.classList.add('out');setTimeout(()=>d.remove(),350);},3200);}
 function showErr(el,msg){el.textContent=msg;el.hidden=false;}
 function copyText(txt){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast('کپی شد')).catch(()=>fallbackCopy(txt));}else fallbackCopy(txt);}
@@ -571,27 +587,49 @@ const P={
  grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
  list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
  dup:'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+ mic:'<path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3M9 21h6"/>',
+ money:'<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 12h.01M18 12h.01"/>',
 };
 const I={};for(const k in P)I[k]='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+P[k]+'</svg>';
 const FIELD_TYPES={
  text:{label:'متن کوتاه',icon:'type'},
  longtext:{label:'متن بلند',icon:'align'},
  number:{label:'عدد',icon:'hash'},
+ money:{label:'مبلغ (با واحد پول)',icon:'money'},
  date:{label:'تاریخ',icon:'calendar'},
  url:{label:'آدرس سایت',icon:'globe'},
  password:{label:'رمز عبور',icon:'key'},
  image:{label:'تصویر',icon:'image'},
+ audio:{label:'صدا (ضبط یا فایل)',icon:'mic'},
  pdf:{label:'فایل PDF',icon:'file'},
  word:{label:'فایل Word',icon:'word'},
  excel:{label:'فایل Excel',icon:'excel'},
 };
+const CURRENCIES=[
+ {label:'تومان'},
+ {label:'ریال'},
+ {label:'دلار آمریکا'},
+ {label:'یورو'},
+ {label:'پوند'},
+ {label:'درهم امارات'},
+ {label:'لیر ترکیه'},
+ {label:'دینار عراق'},
+ {label:'افغانی'},
+ {label:'روبل روسیه'},
+ {label:'یوان چین'},
+ {label:'ین ژاپن'},
+ {label:'فرنک سوئیس'},
+ {label:'دلار کانادا'},
+ {label:'دلار استرالیا'},
+];
 const FILE_ACCEPT={
  image:'image/*',
+ audio:'audio/*,.mp3,.wav,.m4a,.aac,.ogg,.webm',
  pdf:'application/pdf',
  word:'.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
  excel:'.xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 };
-const FILE_LABEL={image:'تصویر',pdf:'فایل PDF',word:'فایل Word',excel:'فایل Excel'};
+const FILE_LABEL={image:'تصویر',audio:'فایل صدا',pdf:'فایل PDF',word:'فایل Word',excel:'فایل Excel'};
 function isFileType(t){return !!FILE_ACCEPT[t];}
 
 async function deriveKey(pass,salt){
@@ -612,6 +650,51 @@ async function doSave(){
 }
 let saveT=null;
 function save(){clearTimeout(saveT);saveT=setTimeout(doSave,250);}
+
+/* ===== ضبط صدا با میکروفون ===== */
+let REC={stream:null,rec:null,timer:null,start:0,fid:null,btn:null};
+function extFromMime(m){m=m||'';if(m.indexOf('ogg')>-1)return '.ogg';if(m.indexOf('mp4')>-1||m.indexOf('aac')>-1)return '.m4a';if(m.indexOf('mpeg')>-1||m.indexOf('mp3')>-1)return '.mp3';if(m.indexOf('wav')>-1)return '.wav';return '.webm';}
+function abortRec(){
+ if(REC.timer)clearInterval(REC.timer);
+ if(REC.rec){try{REC.rec.onstop=null;REC.rec.stop();}catch(e){}}
+ if(REC.stream){try{REC.stream.getTracks().forEach(t=>t.stop());}catch(e){}}
+ if(REC.btn){REC.btn.disabled=false;REC.btn.classList.remove('recording');}
+ const st=REC.fid?$('#rec_'+REC.fid):null;if(st)st.hidden=true;
+ REC={stream:null,rec:null,timer:null,start:0,fid:null,btn:null};
+}
+async function startRec(fid,btn){
+ if(REC.rec){toast('یک ضبط دیگر در جریان است','warn');return;}
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||!window.MediaRecorder){toast('مرورگر شما از ضبط صدا پشتیبانی نمی‌کند؛ از «انتخاب فایل صدا» استفاده کنید','err');return;}
+ try{
+   const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+   const mrec=new MediaRecorder(stream);
+   const chunks=[];
+   mrec.ondataavailable=ev=>{if(ev.data&&ev.data.size)chunks.push(ev.data);};
+   mrec.onstop=()=>{
+     try{stream.getTracks().forEach(t=>t.stop());}catch(e){}
+     if(REC.timer)clearInterval(REC.timer);
+     const st=$('#rec_'+fid);if(st)st.hidden=true;
+     if(btn){btn.disabled=false;btn.classList.remove('recording');}
+     REC={stream:null,rec:null,timer:null,start:0,fid:null,btn:null};
+     const blob=new Blob(chunks,{type:mrec.mimeType||'audio/webm'});
+     if(!blob.size){toast('ضبط خالی بود','warn');return;}
+     const reader=new FileReader();
+     reader.onload=()=>{
+       const obj={name:'ضبط-صدا-'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+extFromMime(blob.type),mime:blob.type||'audio/webm',size:blob.size,data:reader.result};
+       if(CURPENDING)CURPENDING[fid]=obj;
+       const pz=$('#prev_'+fid);if(pz)pz.innerHTML=prevHTML(obj);
+       toast('صدا ضبط شد؛ برای ثبت نهایی دکمه «ثبت رکورد» را بزنید');
+     };
+     reader.readAsDataURL(blob);
+   };
+   mrec.start();
+   REC={stream:stream,rec:mrec,timer:null,start:Date.now(),fid:fid,btn:btn};
+   btn.disabled=true;btn.classList.add('recording');
+   const st=$('#rec_'+fid);
+   if(st){st.hidden=false;const tEl=st.querySelector('.rectime');REC.timer=setInterval(()=>{const s=Math.floor((Date.now()-REC.start)/1000);if(tEl)tEl.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');},500);}
+ }catch(err){toast('دسترسی به میکروفن ممکن نشد؛ اجازه میکروفن را بدهید یا از «انتخاب فایل صدا» استفاده کنید','err');}
+}
+function stopRec(fid){if(REC.rec&&REC.fid===fid){try{REC.rec.stop();}catch(e){}}}
 
 let ui={sel:null,view:'node',expanded:new Set(),search:{q:'',match:'contains',scope:'all',type:'all',done:false},results:null,viewMode:'cards'};
 try{ui.viewMode=localStorage.getItem('baygan-viewmode')||'cards';}catch(e){}
@@ -652,24 +735,24 @@ function moveNode(id,up){
 }
 
 function seedSample(){
- function N(title,parent,fields){const n={id:uid(),title:title,parent:parent||null,children:[],fields:fields.map(f=>({id:uid(),type:f[0],label:f[1]})),created:Date.now()};DB.nodes[n.id]=n;(parent?DB.nodes[parent].children:DB.root).push(n.id);return n;}
+ function N(title,parent,fields){const n={id:uid(),title:title,parent:parent||null,children:[],fields:fields.map(f=>({id:uid(),type:f[0],label:f[1],unit:f[2]||''})),created:Date.now()};DB.nodes[n.id]=n;(parent?DB.nodes[parent].children:DB.root).push(n.id);return n;}
  function R(node,vals){const v={};node.fields.forEach((f,i)=>{if(vals[i]!=null)v[f.id]=vals[i];});(DB.records[node.id]=DB.records[node.id]||[]).push({id:uid(),values:v,createdAt:Date.now(),updatedAt:Date.now()});}
  const svgImg='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="280" height="160"><rect width="280" height="160" rx="14" fill="#3D2980"/><circle cx="140" cy="66" r="30" fill="#A18CE5"/><rect x="70" y="112" width="140" height="12" rx="6" fill="#6B55BA"/><rect x="95" y="132" width="90" height="8" rx="4" fill="#322167"/></svg>');
  const adari=N('امور اداری',null,[['text','شماره نامه'],['date','تاریخ'],['longtext','خلاصه محتوا']]);
  const nameh=N('نامه‌های دریافتی',adari.id,[['text','شماره نامه'],['text','فرستنده'],['date','تاریخ دریافت'],['longtext','متن نامه']]);
  R(nameh,['۱۴۰۵/۲۱۰','اداره کل آموزش و پرورش','2026-09-10','احتراماً پیرو مکاتبات پیشین، جلسه هماهنگی در هفته آینده برگزار خواهد شد.']);
  R(nameh,['۱۴۰۵/۱۸۷','شرکت پخش آریا','2026-09-02','درخواست تمدید قرارداد همکاری تا پایان سال جاری.']);
- const ghar=N('قراردادها',adari.id,[['text','عنوان قرارداد'],['text','طرف قرارداد'],['number','مبلغ (ریال)'],['date','تاریخ امضا'],['pdf','فایل قرارداد']]);
+ const ghar=N('قراردادها',adari.id,[['text','عنوان قرارداد'],['text','طرف قرارداد'],['money','مبلغ','ریال'],['date','تاریخ امضا'],['pdf','فایل قرارداد']]);
  R(ghar,['قرارداد پشتیبانی سالانه','شرکت رایان‌گستر',850000000,'2026-05-20']);
- const mali=N('امور مالی',null,[['text','شرح'],['number','مبلغ (ریال)'],['date','تاریخ سند'],['excel','فاکتور (اکسل)']]);
+ const mali=N('امور مالی',null,[['text','شرح'],['money','مبلغ','تومان'],['date','تاریخ سند'],['excel','فاکتور (اکسل)']]);
  R(mali,['پرداخت اجاره مهر ماه',450000000,'2026-09-23']);
  R(mali,['خرید لوازم‌التحریر',18500000,'2026-09-15']);
  const acc=N('حساب‌های کاربری',null,[['text','نام حساب'],['url','آدرس سایت'],['text','نام کاربری'],['password','رمز عبور']]);
  R(acc,['پرتال سازمانی','https://example.com','user.sample','ChangeMe!123']);
  R(acc,['پست الکترونیک','https://mail.example.com','me@example.com','Sample@2026']);
  N('اسناد و گزارش‌ها',null,[['text','عنوان سند'],['word','فایل Word'],['excel','جدول Excel']]);
- const media=N('آرشیو رسانه',null,[['image','تصویر'],['longtext','توضیحات']]);
- R(media,[svgImg,'تصویر نمونه — می‌توانید تصویر خودتان را بارگذاری کنید.']);
+ const media=N('آرشیو رسانه',null,[['image','تصویر'],['audio','صدا'],['longtext','توضیحات']]);
+ R(media,[svgImg,null,'تصویر و صدا نمونه — می‌توانید حذفشان کنید و موارد خودتان را بارگذاری یا ضبط کنید.']);
 }
 
 function renderAll(){renderHeader();renderTree();renderMain();renderStats();updateClock();}
@@ -721,7 +804,7 @@ function renderTree(){
 }
 function schemaChips(n){
  if(!n.fields.length)return '<div class="schema-empty"><p>'+I.settings+' <b>این شاخه هنوز فیلدی ندارد.</b> برای ثبت رکورد، ابتدا فیلدها را تعریف کنید.</p><button class="btn btn-primary" data-act="fields" data-nid="'+n.id+'">تعریف فیلدها</button></div>';
- return '<div class="schema">'+n.fields.map(f=>'<span class="chip">'+I[FIELD_TYPES[f.type].icon]+esc(f.label)+'</span>').join('')+'</div>';
+ return '<div class="schema">'+n.fields.map(f=>'<span class="chip">'+I[FIELD_TYPES[f.type].icon]+esc(f.label)+(f.type==='money'&&f.unit?' ('+esc(f.unit)+')':'')+'</span>').join('')+'</div>';
 }
 function fileChipHTML(nid,rid,f,v){
  const cls=f.type==='pdf'?'fc-pdf':(f.type==='word'?'fc-word':'fc-excel');
@@ -738,8 +821,14 @@ function valHTML(nid,rid,f,r){
     +'<button class="mini" data-act="viewfile" data-nid="'+nid+'" data-rid="'+rid+'" data-fid="'+f.id+'">صفحه جداگانه</button>'
     +'</div></div>';
  }
+ if(f.type==='audio'){
+   return '<div class="audiowrap"><audio controls src="'+v.data+'" preload="metadata"></audio>'
+    +'<div class="imgbtns"><span class="hint">'+esc(v.name)+' · '+fmtSize(v.size)+'</span>'
+    +'<button class="mini" data-act="viewfile" data-nid="'+nid+'" data-rid="'+rid+'" data-fid="'+f.id+'">صفحه جداگانه</button></div></div>';
+ }
  if(f.type==='pdf'||f.type==='word'||f.type==='excel')return fileChipHTML(nid,rid,f,v);
  if(f.type==='date')return faDate(v);
+ if(f.type==='money')return '<span class="moneyval">'+fmtMoney(v)+'<b>'+esc(f.unit||'')+'</b></span>';
  if(f.type==='longtext'){const s=esc(String(v)).replace(/\n/g,'<br>');return s.length>300?s.slice(0,300)+'…':s;}
  if(f.type==='url'){
    return '<span class="urlval"><a class="urllink" href="'+esc(hrefOf(v))+'" target="_blank" rel="noopener noreferrer">'+I.globe+'<span>'+esc(String(v))+'</span></a>'
@@ -756,12 +845,14 @@ function tableValHTML(nid,rid,f,r){
  const v=r.values[f.id];
  if(v==null||v==='')return '<span class="empty">—</span>';
  if(f.type==='image')return '<img class="rthumb" src="'+v.data+'" data-act="thumb" alt="" loading="lazy">';
+ if(f.type==='audio')return '<audio controls src="'+v.data+'" preload="metadata"></audio>';
  if(f.type==='pdf'||f.type==='word'||f.type==='excel'){
    const cls=f.type==='pdf'?'fc-pdf':(f.type==='word'?'fc-word':'fc-excel');
    return '<span class="pdfchip '+cls+'">'+I[FIELD_TYPES[f.type].icon]+'<b>'+esc(v.name)+'</b>'
     +'<button class="mini" data-act="viewfile" data-nid="'+nid+'" data-rid="'+rid+'" data-fid="'+f.id+'">نمایش</button></span>';
  }
  if(f.type==='date')return faDate(v);
+ if(f.type==='money')return '<span class="moneyval">'+fmtMoney(v)+'<b>'+esc(f.unit||'')+'</b></span>';
  if(f.type==='longtext'){const s=esc(String(v));return s.length>80?s.slice(0,80)+'…':s;}
  if(f.type==='url'){
    return '<a class="urllink" href="'+esc(hrefOf(v))+'" target="_blank" rel="noopener noreferrer">'+I.globe+'<span>'+esc(String(v))+'</span></a>';
@@ -787,7 +878,7 @@ function recTable(n,recs){
  if(!recs.length)return '<div class="empty-sub">هنوز رکوردی در این شاخه ثبت نشده است.</div>';
  let h='<div class="rtable-wrap"><table class="rtable"><thead><tr>'
   +'<th class="col-num">#</th>'
-  +n.fields.map(f=>'<th>'+I[FIELD_TYPES[f.type].icon]+' '+esc(f.label)+'</th>').join('')
+  +n.fields.map(f=>'<th>'+I[FIELD_TYPES[f.type].icon]+' '+esc(f.label)+(f.type==='money'&&f.unit?' ('+esc(f.unit)+')':'')+'</th>').join('')
   +'<th class="col-acts">عملیات</th></tr></thead><tbody>';
  recs.forEach((r,i)=>{
    h+='<tr id="rec-'+r.id+'">'
@@ -806,7 +897,7 @@ function emptyHome(){
  return '<div class="home-empty"><div class="he-ico">'+I.db+'</div><h2>بانک اطلاعاتی شما خالی است</h2>'
   +'<p>برای شروع، اولین شاخه را بسازید، فیلدهایش را تعریف کنید و سپس رکورد اضافه کنید.</p>'
   +'<button class="btn btn-accent" data-act="addroot">'+I.plus+' ایجاد اولین شاخه</button>'
-  +'<ol class="he-steps"><li><b>ساخت شاخه‌ها:</b>&nbsp;طبقه‌بندی درختی اطلاعات</li><li><b>تعریف فیلد هر شاخه:</b>&nbsp;متن، عدد، تاریخ، آدرس سایت، رمز عبور، تصویر و فایل‌ها</li><li><b>ثبت رکورد:</b>&nbsp;ورود اطلاعات در هر شاخه</li><li><b>جستجو، ویرایش، چاپ و پشتیبان‌گیری</b>&nbsp;از نوار بالا</li></ol></div>';
+  +'<ol class="he-steps"><li><b>ساخت شاخه‌ها:</b>&nbsp;طبقه‌بندی درختی اطلاعات</li><li><b>تعریف فیلد هر شاخه:</b>&nbsp;متن، مبلغ با واحد پول، تاریخ، رمز عبور، تصویر، صدا و فایل‌ها</li><li><b>ثبت رکورد:</b>&nbsp;ورود اطلاعات در هر شاخه</li><li><b>جستجو، ویرایش، چاپ و پشتیبان‌گیری</b>&nbsp;از نوار بالا</li></ol></div>';
 }
 function renderMain(){
  const m=$('#mainArea');
@@ -850,7 +941,7 @@ function renderMain(){
 
 function renderSearchView(m){
  const s=ui.search;
- const typeOpts=[['all','همه فیلدها'],['text','متن'],['number','عدد'],['date','تاریخ'],['url','آدرس سایت'],['image','تصویر'],['pdf','PDF'],['word','Word'],['excel','Excel']];
+ const typeOpts=[['all','همه فیلدها'],['text','متن'],['number','عدد'],['money','مبلغ'],['date','تاریخ'],['url','آدرس سایت'],['image','تصویر'],['audio','صدا'],['pdf','PDF'],['word','Word'],['excel','Excel']];
  m.innerHTML='<div class="spanel"><h2 class="spanel-title">'+I.search+'جستجوی پیشرفته</h2>'
   +'<form id="sform" class="sgrid">'
   +'<input class="inp" id="sq" placeholder="عبارت جستجو…" value="'+esc(s.q)+'">'
@@ -954,6 +1045,7 @@ function viewerShell(title,badge,bodyHtml,dl){
   +'.vbody{padding:28px 20px;display:flex;flex-direction:column;align-items:center}'
   +'.vimg{max-width:100%;max-height:80vh;border-radius:12px;box-shadow:'+sh+';cursor:zoom-in;background:'+p.surface+'}'
   +'body.zoomed .vimg{max-height:none;cursor:zoom-out}'
+  +'.vaudio{width:100%;max-width:640px;margin-top:26px}'
   +'.docx{background:'+p.surface+';max-width:840px;width:100%;padding:46px 52px;border-radius:14px;box-shadow:'+sh+';font-size:15px;color:'+p.ink+'}'
   +'.docx h1,.docx h2,.docx h3,.docx h4{color:'+p.headTxt+';margin:16px 0 8px;line-height:1.7}'
   +'.docx p{margin:6px 0}'
@@ -1039,6 +1131,10 @@ function openFilePage(v,type){
    writeViewer(win,viewerShell(v.name||'تصویر','تصویر','<img class="vimg" src="'+v.data+'" alt="">',{href:v.data,name:v.name||'image',size:v.size||0}));
    return;
  }
+ if(type==='audio'){
+   writeViewer(win,viewerShell(v.name||'صدا','صدا','<audio controls src="'+v.data+'" class="vaudio"></audio>',{href:v.data,name:v.name||'audio',size:v.size||0}));
+   return;
+ }
  if(type==='word'){previewWord(v,win);return;}
  if(type==='excel'){previewExcel(v,win);return;}
  fallbackViewer(win,v,'پیش‌نمایش برای این نوع فایل در دسترس نیست.');
@@ -1051,7 +1147,7 @@ function openModal(title,body,opts){
  w.classList.add('on');
  return w.querySelector('.mbody');
 }
-function closeModal(){const w=$('#modalWrap');w.classList.remove('on');w.innerHTML='';CURPENDING=null;}
+function closeModal(){abortRec();const w=$('#modalWrap');w.classList.remove('on');w.innerHTML='';CURPENDING=null;}
 function confirmModal(title,msg,onYes,okText){
  openModal(title,'<p class="cmsg">'+msg+'</p><div class="mactions"><button class="btn btn-ghost" data-act="closemodal">انصراف</button><button class="btn btn-danger" id="cYes">'+(okText||'بله، حذف شود')+'</button></div>');
  $('#cYes').onclick=()=>{closeModal();onYes();};
@@ -1114,15 +1210,26 @@ function openCopyFieldsModal(targetId){
  openModal('کپی فیلدها از شاخه دیگر',h,{wide:true});
 }
 
+/* ===== ویرایشگر فیلدها (با ستون واحد پول) ===== */
+function unitControl(f,i){
+ const known=CURRENCIES.some(c=>c.label===f.unit);
+ if(known){
+   return '<select class="inp funit" data-i="'+i+'">'
+    +CURRENCIES.map(c=>'<option value="'+esc(c.label)+'"'+(f.unit===c.label?' selected':'')+'>'+esc(c.label)+'</option>').join('')
+    +'<option value="__custom__">واحد دلخواه…</option></select>';
+ }
+ return '<input class="inp funitcustom" data-i="'+i+'" placeholder="واحد پول، مثلاً سکه" value="'+esc(f.unit||'')+'">';
+}
 function openFieldEditor(nid){
  const node=DB.nodes[nid];
- let local=node.fields.map(f=>({id:f.id,type:f.type,label:f.label}));
+ let local=node.fields.map(f=>({id:f.id,type:f.type,label:f.label,unit:f.unit||''}));
  openModal('فیلدهای شاخه «'+esc(node.title)+'»','<div id="feBox"></div>',{wide:true});
  const box=$('#feBox');
  function draw(){
    box.innerHTML=(local.length?local.map((f,i)=>'<div class="frow">'
      +'<select class="inp ftype" data-i="'+i+'">'+Object.keys(FIELD_TYPES).map(k=>'<option value="'+k+'"'+(f.type===k?' selected':'')+'>'+FIELD_TYPES[k].label+'</option>').join('')+'</select>'
      +'<input class="inp fname" data-i="'+i+'" placeholder="عنوان فیلد" value="'+esc(f.label)+'">'
+     +(f.type==='money'?unitControl(f,i):'<span class="funit-empty"></span>')
      +'<button class="iconbtn warn" data-fdel="'+i+'" title="حذف فیلد">'+I.trash+'</button></div>').join('')
      :'<p class="hint" style="margin-bottom:10px">فیلدی تعریف نشده است.</p>')
      +'<div class="mactions spread"><button class="btn btn-ghost" data-fadd>'+I.plus+' افزودن فیلد</button><button class="btn btn-ghost" data-fcopy>'+I.dup+' کپی از شاخه دیگر</button></div>'
@@ -1131,33 +1238,54 @@ function openFieldEditor(nid){
  box.addEventListener('click',e=>{
    const del=e.target.closest('[data-fdel]');
    if(del){local.splice(+del.dataset.fdel,1);draw();return;}
-   if(e.target.closest('[data-fadd]')){local.push({id:uid(),type:'text',label:''});draw();return;}
+   if(e.target.closest('[data-fadd]')){local.push({id:uid(),type:'text',label:'',unit:''});draw();return;}
    if(e.target.closest('[data-fcopy]')){openCopyFieldsModal(nid);return;}
    if(e.target.closest('[data-fsave]')){
      local=local.filter(f=>f.label&&f.label.trim());
      node.fields=local;save();closeModal();renderAll();toast('فیلدها ذخیره شد');
    }
  });
- box.addEventListener('change',e=>{const s=e.target.closest('.ftype');if(s)local[+s.dataset.i].type=s.value;});
- box.addEventListener('input',e=>{const s=e.target.closest('.fname');if(s)local[+s.dataset.i].label=s.value;});
+ box.addEventListener('change',e=>{
+   const s=e.target.closest('.ftype');
+   if(s){const i=+s.dataset.i;local[i].type=s.value;if(s.value==='money'&&!local[i].unit)local[i].unit='تومان';draw();return;}
+   const u=e.target.closest('.funit');
+   if(u){const i=+u.dataset.i;if(u.value==='__custom__'){local[i].unit='';}else{local[i].unit=u.value;}draw();return;}
+ });
+ box.addEventListener('input',e=>{
+   const s=e.target.closest('.fname');if(s){local[+s.dataset.i].label=s.value;return;}
+   const uc=e.target.closest('.funitcustom');if(uc){local[+uc.dataset.i].unit=uc.value;return;}
+ });
  draw();
 }
 
 function prevHTML(v){
  if(!v)return '<span class="hint">فایلی انتخاب نشده</span>';
  if((v.mime||'').indexOf('image/')===0)return '<img class="previmg" src="'+v.data+'" alt="">';
+ if((v.mime||'').indexOf('audio/')===0)return '<span class="pdfchip">'+I.mic+'<b>'+esc(v.name)+'</b><span class="hint">'+fmtSize(v.size)+'</span></span><audio controls src="'+v.data+'" preload="metadata"></audio>';
  return '<span class="pdfchip">'+I.file+'<b>'+esc(v.name)+'</b><span class="hint">'+fmtSize(v.size)+'</span></span>';
 }
 function inputFor(f,v){
  if(f.type==='text')return '<input class="inp" name="f_'+f.id+'" value="'+esc(v||'')+'" maxlength="500">';
  if(f.type==='longtext')return '<textarea class="inp" name="f_'+f.id+'" rows="4">'+esc(v||'')+'</textarea>';
  if(f.type==='number')return '<input type="number" step="any" class="inp" name="f_'+f.id+'" value="'+esc(v==null?'':v)+'">';
+ if(f.type==='money'){
+   return '<div class="moneybox"><input class="inp" type="number" step="any" inputmode="decimal" name="f_'+f.id+'" value="'+esc(v==null?'':v)+'" placeholder="مثلاً 1500000">'
+    +'<span class="moneyunit">'+esc(f.unit||'')+'</span></div>';
+ }
  if(f.type==='date')return '<input type="date" class="inp" name="f_'+f.id+'" value="'+esc(v||'')+'"><span class="hint">تاریخ میلادی را انتخاب کنید؛ نمایش شمسی خواهد بود.</span>';
  if(f.type==='url')return '<input class="inp" dir="ltr" inputmode="url" name="f_'+f.id+'" value="'+esc(v||'')+'" placeholder="https://example.com">';
  if(f.type==='password'){
    return '<div class="pwbox"><div class="pwinp"><input class="inp pwInp" type="password" dir="ltr" autocomplete="new-password" name="f_'+f.id+'" value="'+esc(v||'')+'" placeholder="رمز عبور">'
     +'<button type="button" class="pw-eye" data-pweye title="نمایش/پنهان">'+I.eye+'</button></div>'
     +'<div class="pwtools"><button type="button" class="btn btn-ghost small" data-pwgen>'+I.key+' تولید رمز قوی</button><span class="pwbar"><i></i></span></div></div>';
+ }
+ if(f.type==='audio'){
+   return '<div class="filebox"><input type="file" class="fileInp" id="fi_'+f.id+'" accept="'+FILE_ACCEPT.audio+'" hidden>'
+    +'<div class="filebtns"><button type="button" class="btn btn-ghost" data-pickfile="'+f.id+'">'+I.upload+' انتخاب فایل صدا</button>'
+    +'<button type="button" class="btn btn-ghost" data-recfile="'+f.id+'">'+I.mic+' ضبط صدا</button>'
+    +(v?'<button type="button" class="btn btn-ghost" data-unsetfile="'+f.id+'">'+I.trash+' حذف فایل فعلی</button>':'')+'</div>'
+    +'<div class="recstat" id="rec_'+f.id+'" hidden><span class="recdot"></span> در حال ضبط… <b class="rectime">00:00</b> <button type="button" class="btn btn-danger small" data-recstop="'+f.id+'">⏹ پایان ضبط</button></div>'
+    +'<div class="fprev" id="prev_'+f.id+'">'+prevHTML(v)+'</div></div>';
  }
  if(isFileType(f.type)){
    return '<div class="filebox"><input type="file" class="fileInp" id="fi_'+f.id+'" accept="'+FILE_ACCEPT[f.type]+'" hidden>'
@@ -1175,7 +1303,7 @@ function openRecordForm(nid,rid){
  let h='<form id="recForm" class="rform">';
  n.fields.forEach(f=>{
    const v=rec?rec.values[f.id]:null;
-   h+='<div class="ff"><label class="flab">'+I[FIELD_TYPES[f.type].icon]+esc(f.label)+' <span class="ftag">'+FIELD_TYPES[f.type].label+'</span></label>'+inputFor(f,v)+'</div>';
+   h+='<div class="ff"><label class="flab">'+I[FIELD_TYPES[f.type].icon]+esc(f.label)+(f.type==='money'&&f.unit?' <span class="ftag">'+esc(f.unit)+'</span>':'')+' <span class="ftag">'+FIELD_TYPES[f.type].label+'</span></label>'+inputFor(f,v)+'</div>';
  });
  h+='<div class="mactions"><button type="button" class="btn btn-ghost" data-act="closemodal">انصراف</button><button class="btn btn-accent" type="submit">'+(rec?'ذخیره تغییرات':'ثبت رکورد')+'</button></div></form>';
  openModal(rec?'ویرایش رکورد':'رکورد جدید در «'+esc(n.title)+'»',h,{wide:true});
@@ -1287,9 +1415,10 @@ function buildPrint(title,groups){
             else cell='پیوست ('+FIELD_TYPES[f.type].label+'): '+esc(v.name);
           }
           else if(f.type==='date')cell=faDate(v);
+          else if(f.type==='money')cell=fmtMoney(v)+' '+esc(f.unit||'');
           else cell=esc(String(v)).replace(/\n/g,'<br>');
         }
-        return '<tr><td class="pr-k">'+esc(f.label)+'</td><td>'+cell+'</td></tr>';
+        return '<tr><td class="pr-k">'+esc(f.label)+(f.type==='money'&&f.unit?' ('+esc(f.unit)+')':'')+'</td><td>'+cell+'</td></tr>';
       }).join('')+'</table></div>';
    });
  });
@@ -1405,6 +1534,7 @@ function enterApp(){
 }
 function doLock(){
  if(!DB)return;
+ abortRec();
  DB=null;KEY=null;SALT=null;CURPENDING=null;
  closeModal();$('#lightbox').classList.remove('on');
  document.body.classList.remove('side-open');
@@ -1488,7 +1618,7 @@ document.addEventListener('click',e=>{
        '<div class="warnbox">'+I.dup+'<div>آیا از کپی <b>'+faNum(src.fields.length)+' فیلد</b> از «'+esc(src.title)+'» به «'+esc(target.title)+'» اطمینان دارید؟<br><span class="hint">فیلدهای فعلی شاخه مقصد جایگزین می‌شوند. رکوردهای موجود دست‌نخورده می‌مانند.</span></div></div>',
        'بله، کپی شود','انصراف');
      if(!ok)return;
-     target.fields=src.fields.map(f=>({id:uid(),type:f.type,label:f.label}));
+     target.fields=src.fields.map(f=>({id:uid(),type:f.type,label:f.label,unit:f.unit||''}));
      save();closeModal();renderAll();toast(faNum(src.fields.length)+' فیلد با موفقیت کپی شد');
    })();break;
    case 'opensearch':ui.view='search';renderAll();break;
@@ -1506,6 +1636,10 @@ document.addEventListener('click',e=>{
  if(pf){const inp=$('#fi_'+pf.dataset.pickfile);if(inp)inp.click();return;}
  const uf=e.target.closest('[data-unsetfile]');
  if(uf){const id=uf.dataset.unsetfile;if(CURPENDING)CURPENDING[id]=null;const pz=$('#prev_'+id);if(pz)pz.innerHTML='<span class="hint">فایل فعلی حذف خواهد شد</span>';return;}
+ const rb=e.target.closest('[data-recfile]');
+ if(rb){startRec(rb.dataset.recfile,rb);return;}
+ const rs=e.target.closest('[data-recstop]');
+ if(rs){stopRec(rs.dataset.recstop);return;}
  const eye=e.target.closest('[data-pweye]');
  if(eye){const inp=eye.parentElement?eye.parentElement.querySelector('.inp'):null;
    if(inp){if(inp.type==='password'){inp.type='text';eye.innerHTML=I.eyeoff;}else{inp.type='password';eye.innerHTML=I.eye;}}return;}
@@ -1564,14 +1698,13 @@ window.addEventListener('beforeunload',()=>{if(DB&&KEY)doSave();});
  $('#btnSettings').innerHTML=I.settings+'<span class="btx">تنظیمات</span>';
  $('#featList').innerHTML=[
    [I.tree,'ساختار درختی با زیرشاخه‌های نامحدود'],
-   [I.image,'فیلدهای متن، عدد، تاریخ، آدرس سایت، رمز عبور، تصویر و فایل‌ها'],
-   [I.db,'کاملاً آفلاین — ذخیره‌سازی رمزگذاری‌شده روی همین دستگاه'],
-   [I.lock,'حذف امن با رمز عبور + قفل خودکار + پشتیبان‌گیری'],
+   [I.money,'فیلد مبلغ با واحد پول: تومان، ریال، دلار، یورو و…'],
+   [I.mic,'ضبط صدا، تصویر، رمز عبور، آدرس سایت و فایل‌ها'],
+   [I.lock,'کاملاً آفلاین و رمزگذاری‌شده روی همین دستگاه'],
  ].map(x=>'<li>'+x[0]+'<span>'+x[1]+'</span></li>').join('');
  $('#authLegal').innerHTML=I.pencil+'<span>طراح عبدالرضا مستشاری</span>';
  $('#authFoot').innerHTML=I.shield+'<span>داده‌ها به‌صورت رمزگذاری‌شده داخل حافظه مرورگر همین دستگاه ذخیره می‌شوند.</span>';
  updateThemeIcons();setMetaTheme();
- /* منوی موبایل: اتصال مستقیم و محکم به دکمه ☰ */
  let lastMenuTap=0;
  const mb=$('#menuBtn');
  if(mb){mb.addEventListener('click',function(ev){ev.stopPropagation();const now=Date.now();if(now-lastMenuTap<400)return;lastMenuTap=now;document.body.classList.toggle('side-open');});}
