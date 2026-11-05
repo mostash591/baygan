@@ -1,42 +1,39 @@
-const CACHE = 'baygan-v1';
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  'https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap',
-  'https://fonts.gstatic.com/s/vazirmatn/v15/Dxx78j6PP2DvUJ1tGyV73OwKf2I',
-  'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
-];
+/* نگهبان آفلاین بایگانی اطلاعات */
+const CACHE='baygan-v1';
+const CDN='baygan-cdn-v1';
+const PRECACHE=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(ASSETS).catch(()=>{}))
-  );
-  self.skipWaiting();
+self.addEventListener('install',e=>{
+  e.waitUntil(caches.open(CACHE).then(c=>Promise.allSettled(PRECACHE.map(p=>c.add(p)))).then(()=>self.skipWaiting()));
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(names => Promise.all(
-      names.filter(n => n !== CACHE).map(n => caches.delete(n))
-    ))
-  );
-  self.clients.claim();
+self.addEventListener('activate',e=>{
+  e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE&&k!==CDN).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
 });
 
-self.addEventListener('fetch', e => {
-  if(e.request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      if(cached) return cached;
-      return fetch(e.request).then(res => {
-        if(res && res.status === 200 && res.type === 'basic'){
-          const copy = res.clone();
-          caches.open(CACHE).then(cache => cache.put(e.request, copy));
-        }
+self.addEventListener('fetch',e=>{
+  const req=e.request;
+  if(req.method!=='GET')return;
+  const url=new URL(req.url);
+  if(url.origin===self.location.origin){
+    /* فایل‌های خود برنامه: اول اینترنت (برای دریافت آپدیت)، اگر آفلاین بود از کش */
+    e.respondWith(
+      fetch(req).then(res=>{
+        const copy=res.clone();
+        caches.open(CACHE).then(c=>c.put(req,copy));
         return res;
-      }).catch(() => caches.match('./index.html'));
-    })
-  );
+      }).catch(()=>caches.match(req).then(hit=>hit||caches.match('./index.html')))
+    );
+  }else{
+    /* منابع بیرونی (فونت وزیر و کتابخانه‌ها): اول کش، اگر نبود از اینترنت */
+    e.respondWith(
+      caches.open(CDN).then(c=>c.match(req).then(hit=>{
+        if(hit)return hit;
+        return fetch(req).then(res=>{
+          if(res&&res.ok)c.put(req,res.clone());
+          return res;
+        });
+      }))
+    );
+  }
 });
